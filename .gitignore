@@ -1,0 +1,5 @@
+venv
+extracted/*.mp4
+extracted/*.avi
+source/*.mp4
+source/*.avi
