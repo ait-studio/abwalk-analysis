@@ -16,7 +16,7 @@ def main():
     colors = np.random.uniform(0, 255, size = (len(classes), 3))
 
     listDir = os.listdir("./source")
-    listDir = listDir[:1]
+    listDir = ["01-00.mp4","01-45.mp4", "01-90.mp4"]
 
     for i in listDir:
         fileName, fileType = i.split(".")
@@ -34,17 +34,20 @@ def main():
         frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
         outFileName = "./extracted/" + fileName + ".avi"
-        outFile = cv2.VideoWriter(outFileName, fourcc, frameRate, (1920, 1080))
+
+        frameWidth = int(1920 * 1)
+        frameHeight = int(1080 * 1)
+        outFile = cv2.VideoWriter(outFileName, fourcc, frameRate, (frameWidth, frameHeight))
 
         curFrame = 0
         barWidth = 50
 
         while True:
             ret, img = cap.read()
-            width, height, channel = img.shape
 
             if ret:
-                img = cv2.resize(img, None, fx=0.4, fy=0.4)
+                # img = cv2.resize(img, None, fx=0.4, fy=0.4)
+                height, width, _ = img.shape
 
                 blob = cv2.dnn.blobFromImage(img, 0.00392, (608, 608), (0, 0, 0), True, crop=False)
                 net.setInput(blob)
@@ -80,11 +83,12 @@ def main():
                 for i in range(len(boxes)):
                     if i in indexes:
                         x, y, w, h = boxes[i]
+                        # print(x, y, w, h)
                         label = str(classes[class_ids[i]])
 
                         color = colors[i]
-                        img = cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
-                        img = cv2.putText(img, label, (x, y + 30), font, 3, color, 3)
+                        img = cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                        img = cv2.putText(img, label, (x, y - 30), font, 2, color, 2)
 
                 outFile.write(img)
                 # cv2.imshow("img", img)
@@ -99,7 +103,7 @@ def main():
         
         print("")
         cap.release()
-        out.release()
+        outFile.release()
 
     return
 
