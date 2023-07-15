@@ -57,7 +57,6 @@ def main():
     colors = np.random.uniform(0, 255, size = (len(classes), 3))
 
     listDir = os.listdir("./source")
-    listDir = ["example.mp4"]
 
     for i in listDir:
         fileName, fileType = i.split(".")
@@ -120,6 +119,9 @@ def main():
                             x = int(centerX - w/2)
                             y = int(centerY - h/2)
 
+                            x = x if x > 0 else 0
+                            y = y if y > 0 else 0
+
                             boxes.append([x, y, w, h])
                             confidences.append(float(confidence))
                             class_ids.append(class_id)
@@ -142,22 +144,24 @@ def main():
                         # if cv2.waitKey(1) & 0xFF == ord('q'):
                         #     break
 
-                        if(h / w < 2):
-                            factor = 300 / w
-                            h_interval = int(h * factor)
-                            roi = cv2.resize(roi, (300, h_interval))
+                        if len(roi) > 0:
+                            print(x, y, w, h, len(roi))
+                            if(h / w < 2):
+                                factor = 300 / w
+                                h_interval = int(h * factor)
+                                roi = cv2.resize(roi, (300, h_interval))
+                                
+                                startAt = 300 - int(h_interval / 2)
+                                endAt = startAt + h_interval
+                                newCropped[startAt : endAt, : ] = roi
+                            else :
+                                factor = 600 / h
+                                w_interval = int(w * factor)
+                                roi = cv2.resize(roi, (w_interval, 600))
 
-                            startAt = 300 - int(h_interval / 2)
-                            endAt = startAt + h_interval
-                            newCropped[startAt : endAt, : ] = roi
-                        else :
-                            factor = 600 / h
-                            w_interval = int(w * factor)
-                            roi = cv2.resize(roi, (w_interval, 600))
-
-                            startAt = 150 - int(w_interval / 2)
-                            endAt = startAt + w_interval
-                            newCropped[ : , startAt : endAt] = roi
+                                startAt = 150 - int(w_interval / 2)
+                                endAt = startAt + w_interval
+                                newCropped[ : , startAt : endAt] = roi
                         
                         outRoi.write(newCropped)
 
@@ -178,7 +182,7 @@ def main():
                 filled = filled - (percentageDigit + 1)
                 filled = filled if filled > 0 else 0
                 progress = f"\033[;30;47m{' ' * (filled)}{realPercentage}%\033[;;m{' ' * (barWidth - (filled + percentageDigit + 1))}"
-                print("Progress |", progress, f"| {curFrame:04} / {int(frameCount):04}", end="\r")
+                # print("Progress |", progress, f"| {curFrame:04} / {int(frameCount):04}", end="\r")
             else :
                 break
         
