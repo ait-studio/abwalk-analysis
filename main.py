@@ -3,9 +3,27 @@ import numpy as np
 import os
 
 def main():
-    net = cv2.dnn.readNet("./model/yolov3.weights", "./model/yolov3.cfg")
-    classes = []
+    print("Select converting mode please : ")
+    weightDirectory = "./model/weights"
+    cfgDirectory = "./model/cfgs"
 
+    while True:
+        print("Program quit with enter -1")
+        choice = int(input("1. Standard mode\t2. Light mode(use tiny weights and cfg)\n"))
+
+        if choice == 1:
+            net = cv2.dnn.readNet(f"{weightDirectory}/yolov3.weights", f"{cfgDirectory}/yolov3.cfg")
+            break
+        elif choice == 2:
+            net = cv2.dnn.readNet(f"{weightDirectory}/yolov3-tiny.weights", f"{cfgDirectory}/yolov3-tiny.cfg")
+            break
+        elif choice == -1:
+            print("\n\nProgram has been quit...\n\nGood bye.\n")
+            return
+        else:
+            print("Incorrect choice. Try again please")
+
+    classes = []
     with open("./model/coco.names", "r") as f:
         classes = [line.strip() for line in f.readlines()]
     
@@ -16,7 +34,7 @@ def main():
     colors = np.random.uniform(0, 255, size = (len(classes), 3))
 
     listDir = os.listdir("./source")
-    listDir = ["01-00.mp4","01-45.mp4", "01-90.mp4"]
+    listDir = ["01-00.mp4"]
 
     for i in listDir:
         fileName, fileType = i.split(".")
@@ -49,7 +67,8 @@ def main():
                 # img = cv2.resize(img, None, fx=0.4, fy=0.4)
                 height, width, _ = img.shape
 
-                blob = cv2.dnn.blobFromImage(img, 0.00392, (608, 608), (0, 0, 0), True, crop=False)
+                # blob = cv2.dnn.blobFromImage(img, 0.00392, (608, 608), (0, 0, 0), True, crop=False)
+                blob = cv2.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
                 net.setInput(blob)
                 outs = net.forward(output_layer)
 
@@ -86,8 +105,8 @@ def main():
                         # print(x, y, w, h)
                         label = str(classes[class_ids[i]])
 
-                        color = colors[i]
-                        img = cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                        color = (255, 125, 0)
+                        img = cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
                         img = cv2.putText(img, label, (x, y - 30), font, 2, color, 2)
 
                 outFile.write(img)
