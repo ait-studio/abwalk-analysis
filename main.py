@@ -9,19 +9,41 @@ def main():
 
     while True:
         print("Program quit with enter -1")
-        choice = int(input("1. Standard mode\t2. Light mode(use tiny weights and cfg)\n"))
+        modeChoice = int(input("1. Standard mode\t2. Light mode(use tiny weights and cfg)\n"))
 
-        if choice == 1:
+        if modeChoice == 1:
             net = cv2.dnn.readNet(f"{weightDirectory}/yolov3.weights", f"{cfgDirectory}/yolov3.cfg")
             break
-        elif choice == 2:
+        elif modeChoice == 2:
             net = cv2.dnn.readNet(f"{weightDirectory}/yolov3-tiny.weights", f"{cfgDirectory}/yolov3-tiny.cfg")
             break
-        elif choice == -1:
+        elif modeChoice == -1:
             print("\n\nProgram has been quit...\n\nGood bye.\n")
             return
         else:
             print("Incorrect choice. Try again please")
+    
+    modelSize = -1
+    print("Select the model size please")
+    if modeChoice == 1:
+        while True:
+            print("Program quit with enter -1")
+            sizeChoice = int(input("1. smallest(fast)\t2.middle(normal)\t3.biggest(slow)\n"))
+
+            if sizeChoice == 1:
+                modelSize = (320, 320)
+                break
+            elif sizeChoice == 2:
+                modelSize = (416, 416)
+                break
+            elif sizeChoice == 3:
+                modelSize = (608, 608)
+                break
+            elif sizeChoice == -1:
+                print("\n\nProgram has been quit...\n\nGood bye.\n")
+                return
+            else:
+                print("Incorrect choice. Try again please")
 
     classes = []
     with open("./model/coco.names", "r") as f:
@@ -60,6 +82,10 @@ def main():
         curFrame = 0
         barWidth = 50
 
+        modeText = ["Standard Mode", "Ligth Mode"]
+        sizeText = ["Smallest", "Middle", "biggest"]
+        print(f"\nUsing {modeText[modeChoice - 1]}, {sizeText[sizeChoice - 1]}\n")
+
         while True:
             ret, img = cap.read()
 
@@ -67,8 +93,8 @@ def main():
                 # img = cv2.resize(img, None, fx=0.4, fy=0.4)
                 height, width, _ = img.shape
 
-                # blob = cv2.dnn.blobFromImage(img, 0.00392, (608, 608), (0, 0, 0), True, crop=False)
-                blob = cv2.dnn.blobFromImage(img, 0.00392, (416, 416), (0, 0, 0), True, crop=False)
+                modelSize = (416, 416) if modelSize == -1 else modelSize
+                blob = cv2.dnn.blobFromImage(img, 0.00392, modelSize, (0, 0, 0), True, crop=False)
                 net.setInput(blob)
                 outs = net.forward(output_layer)
 
