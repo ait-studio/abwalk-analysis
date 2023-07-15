@@ -23,6 +23,7 @@ def main():
         else:
             print("Incorrect choice. Try again please")
     
+    sizeChoice = -1
     modelSize = -1
     print("Select the model size please")
     if modeChoice == 1:
@@ -82,10 +83,6 @@ def main():
         curFrame = 0
         barWidth = 50
 
-        modeText = ["Standard Mode", "Ligth Mode"]
-        sizeText = ["Smallest", "Middle", "biggest"]
-        print(f"\nUsing {modeText[modeChoice - 1]}, {sizeText[sizeChoice - 1]}\n")
-
         while True:
             ret, img = cap.read()
 
@@ -93,7 +90,8 @@ def main():
                 # img = cv2.resize(img, None, fx=0.4, fy=0.4)
                 height, width, _ = img.shape
 
-                modelSize = (416, 416) if modelSize == -1 else modelSize
+                modelSize = (608, 608) if modelSize == -1 else modelSize
+                # print(modelSize)
                 blob = cv2.dnn.blobFromImage(img, 0.00392, modelSize, (0, 0, 0), True, crop=False)
                 net.setInput(blob)
                 outs = net.forward(output_layer)
@@ -109,10 +107,11 @@ def main():
                         class_id = np.argmax(scores)
                         confidence = scores[class_id]
                         if confidence > 0.5:
+                            ratio = 1.2
                             centerX = int(detection[0] * width)
                             centerY = int(detection[1] * height)
-                            w = int(detection[2] * width)
-                            h = int(detection[3] * height)
+                            w = int(detection[2] * width * ratio)
+                            h = int(detection[3] * height * ratio)
 
                             x = int(centerX - w/2)
                             y = int(centerY - h/2)
