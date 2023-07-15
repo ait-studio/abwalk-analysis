@@ -3,4 +3,4 @@ extracted/*.mp4
 extracted/*.avi
 source/*.mp4
 source/*.avi
-model/*.weights
+model/weights/*.weights
