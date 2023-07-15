@@ -2,15 +2,6 @@ import cv2
 import numpy as np
 import os
 
-def croppSaver(cropped_frames):
-    # Take the maximum height size
-    heights = np.zeros(len(cropped_frames))
-    print(cropped_frames)
-    print(len(cropped_frames))
-    maxHeight = np.max(heights)
-    print(maxHeight)
-    return True
-
 def main():
     print("Select converting mode please : ")
     weightDirectory = "./model/weights"
@@ -34,8 +25,8 @@ def main():
     
     sizeChoice = -1
     modelSize = -1
-    print("Select the model size please")
     if modeChoice == 1:
+        print("Select the model size please")
         while True:
             print("Program quit with enter -1")
             sizeChoice = int(input("1. smallest(fast)\t2.middle(normal)\t3.biggest(slow)\n"))
@@ -92,7 +83,9 @@ def main():
         curFrame = 0
         barWidth = 50
 
-        cropped_frames = []
+        roi = np.zeros((1920, 1080, 3), dtype="uint8")
+        outRoiName = "./extracted/" + fileName + "_cropped.avi"
+        outRoi = cv2.VideoWriter(outRoiName, fourcc, frameRate, (300, 600))
 
         while True:
             ret, img = cap.read()
@@ -142,7 +135,31 @@ def main():
                         label = str(classes[class_ids[i]])
 
                         # save the cropped image
-                        cropped_frames = np.append(cropped_frames, img[x : x + w, y : y + h])
+                        newCropped = np.zeros((600, 300, 3), dtype="uint8")
+                        roi = img[ y : y + h, x : x + w]
+
+                        # cv2.imshow("img", roi)
+                        # if cv2.waitKey(1) & 0xFF == ord('q'):
+                        #     break
+
+                        if(h / w < 2):
+                            factor = 300 / w
+                            h_interval = int(h * factor)
+                            roi = cv2.resize(roi, (300, h_interval))
+
+                            startAt = 300 - int(h_interval / 2)
+                            endAt = startAt + h_interval
+                            newCropped[startAt : endAt, : ] = roi
+                        else :
+                            factor = 600 / h
+                            w_interval = int(w * factor)
+                            roi = cv2.resize(roi, (w_interval, 600))
+
+                            startAt = 150 - int(w_interval / 2)
+                            endAt = startAt + w_interval
+                            newCropped[ : , startAt : endAt] = roi
+                        
+                        outRoi.write(newCropped)
 
                         color = (255, 125, 0)
                         img = cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
@@ -166,7 +183,6 @@ def main():
                 break
         
         print("")
-        croppSaver(cropped_frames)
         cap.release()
         outFile.release()
 
