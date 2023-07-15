@@ -2,6 +2,15 @@ import cv2
 import numpy as np
 import os
 
+def croppSaver(cropped_frames):
+    # Take the maximum height size
+    heights = np.zeros(len(cropped_frames))
+    print(cropped_frames)
+    print(len(cropped_frames))
+    maxHeight = np.max(heights)
+    print(maxHeight)
+    return True
+
 def main():
     print("Select converting mode please : ")
     weightDirectory = "./model/weights"
@@ -57,7 +66,7 @@ def main():
     colors = np.random.uniform(0, 255, size = (len(classes), 3))
 
     listDir = os.listdir("./source")
-    listDir = ["01-00.mp4"]
+    listDir = ["example.mp4"]
 
     for i in listDir:
         fileName, fileType = i.split(".")
@@ -82,6 +91,8 @@ def main():
 
         curFrame = 0
         barWidth = 50
+
+        cropped_frames = []
 
         while True:
             ret, img = cap.read()
@@ -130,6 +141,9 @@ def main():
                         # print(x, y, w, h)
                         label = str(classes[class_ids[i]])
 
+                        # save the cropped image
+                        cropped_frames = np.append(cropped_frames, img[x : x + w, y : y + h])
+
                         color = (255, 125, 0)
                         img = cv2.rectangle(img, (x, y), (x + w, y + h), color, 2)
                         img = cv2.putText(img, label, (x, y - 30), font, 2, color, 2)
@@ -140,12 +154,19 @@ def main():
                 #     break
 
                 curFrame += 1
-                percentage = int((curFrame / frameCount )* barWidth)
-                print("Progress [", "█" * percentage, " " * (barWidth - percentage), f"] {curFrame} / {frameCount}", end="\r")
+                filled = int((curFrame / frameCount ) * barWidth)
+                realPercentage = int((curFrame / frameCount) * 100)
+                percentageDigit = 1 if realPercentage < 10 else (2 if realPercentage < 100 else 3)
+                
+                filled = filled - (percentageDigit + 1)
+                filled = filled if filled > 0 else 0
+                progress = f"\033[;30;47m{' ' * (filled)}{realPercentage}%\033[;;m{' ' * (barWidth - (filled + percentageDigit + 1))}"
+                print("Progress |", progress, f"| {curFrame:04} / {int(frameCount):04}", end="\r")
             else :
                 break
         
         print("")
+        croppSaver(cropped_frames)
         cap.release()
         outFile.release()
 
