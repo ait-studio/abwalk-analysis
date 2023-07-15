@@ -145,7 +145,7 @@ def main():
                         #     break
 
                         if len(roi) > 0:
-                            print(x, y, w, h, len(roi))
+                            # print(x, y, w, h, len(roi))
                             if(h / w < 2):
                                 factor = 300 / w
                                 h_interval = int(h * factor)
@@ -182,7 +182,7 @@ def main():
                 filled = filled - (percentageDigit + 1)
                 filled = filled if filled > 0 else 0
                 progress = f"\033[;30;47m{' ' * (filled)}{realPercentage}%\033[;;m{' ' * (barWidth - (filled + percentageDigit + 1))}"
-                # print("Progress |", progress, f"| {curFrame:04} / {int(frameCount):04}", end="\r")
+                print("Progress |", progress, f"| {curFrame:04} / {int(frameCount):04}", end="\r")
             else :
                 break
         
