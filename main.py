@@ -3,6 +3,16 @@ import cv2
 from cvzone.PoseModule import PoseDetector
 import numpy as np
 import os
+import math
+
+
+def getAngle(vecA, vecB):
+    dp = np.dot(vecA, vecB)
+    norm1 = np.linalg.norm(vecA)
+    norm2 = np.linalg.norm(vecB)
+    radToDegree = 180 / math.pi
+    curAngle = math.acos(dp / (norm1 * norm2)) * radToDegree
+    return curAngle
 
 
 def drawLine(coordinates, img, style=0):
@@ -93,7 +103,7 @@ def poseAnalyser(video):
                         (13, 15),  # Right elbow - Right wrist
                         (12, 24),  # Left shoulder - Left waist
                         (11, 23),  # Right shoulder - Right waist
-                        (24, 23),  # Left waist - Right waist
+                        (24, 23),  # Left waist - Left waist
                         (24, 26),  # Left waist - Left knee
                         (23, 25),  # Right waist - Right knee
                         (26, 28),  # Left knee - Left ankle
@@ -117,6 +127,24 @@ def poseAnalyser(video):
                             img,
                             0,
                         )
+
+                    ## Get angles from here
+                    angleTargets = [
+                        (24, 12, 16),  # Right wrist - shoulder - waist
+                        (23, 11, 15),  # Left wrist - shoulder - waist
+                    ]
+
+                    for i in angleTargets:
+                        vecA = (
+                            lmList[i[0]][1] - lmList[i[1]][1],
+                            lmList[i[0]][2] - lmList[i[1]][2],
+                        )
+                        vecB = (
+                            lmList[i[2]][1] - lmList[i[1]][1],
+                            lmList[i[2]][2] - lmList[i[1]][2],
+                        )
+                        print(getAngle(vecA, vecB), end="\t")
+                    print("")
 
                 cv2.imshow("img", img)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
