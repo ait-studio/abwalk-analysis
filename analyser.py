@@ -6,6 +6,14 @@ import os
 import math
 
 
+def getDistance(vec):
+    xSquared = vec[0] ** 2
+    ySquared = vec[1] ** 2
+    dist = math.sqrt(xSquared + ySquared)
+
+    return dist
+
+
 def getAngle(vecA, vecB):
     dp = np.dot(vecA, vecB)
     norm1 = np.linalg.norm(vecA)
@@ -144,6 +152,16 @@ def poseAnalyser(video):
                             lmList[i[2]][2] - lmList[i[1]][2],
                         )
                         print(getAngle(vecA, vecB), end="\t")
+
+                    distanceTagets = [(29, 30)]
+
+                    for i in distanceTagets:
+                        myVec = (
+                            lmList[i[0]][1] - lmList[i[1]][1],
+                            lmList[i[0]][2] - lmList[i[1]][2],
+                        )
+
+                        print(getDistance(myVec))
                     print("")
 
                 cv2.imshow("img", img)
@@ -172,7 +190,7 @@ def main():
 
 
 # mockup data
-samplePath = "./source/01-00.mp4"
+samplePath = "./source/01-90.mp4"
 
 # i18n
 notices = {
