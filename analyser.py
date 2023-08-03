@@ -144,6 +144,8 @@ def poseAnalyser(video):
                     angleTargets = [
                         (24, 12, 16),  # Right wrist - shoulder - waist
                         (23, 11, 15),  # Left wrist - shoulder - waist
+                        (11, 23, 29),  # Left shoulder - wrist - hill
+                        (12, 24, 30),  # Right shoulder - wrist - hill
                     ]
 
                     for i in angleTargets:
@@ -155,7 +157,9 @@ def poseAnalyser(video):
                             lmList[i[2]][1] - lmList[i[1]][1],
                             lmList[i[2]][2] - lmList[i[1]][2],
                         )
-                        print(getAngle(vecA, vecB), end="\t")
+                        curAngle = getAngle(vecA, vecB)
+                        curAngle = round(curAngle, 2)
+                        print(curAngle, end="\t")
 
                     distanceTagets = [(29, 30)]
 
@@ -165,7 +169,9 @@ def poseAnalyser(video):
                             lmList[i[0]][2] - lmList[i[1]][2],
                         )
 
-                        print(getDistance(myVec), end="\t")
+                        curDist = getDistance(myVec)
+                        curDist = round(curDist, 2)
+                        print(curDist, end="\t")
 
                     curWristCoordi = [
                         lmList[23][1],  # Left wrist x coordinate
@@ -179,9 +185,32 @@ def poseAnalyser(video):
                         avgDiff = np.average(wristDiff)
                         curKphPixel = avgDiff / dt
 
+                        curKphPixel = round(curKphPixel, 2)
+
                         print(curKphPixel, end="\t")
 
                     lastWristCoordi = curWristCoordi
+
+                    avgPointShoulder = (
+                        int((lmList[11][1] + lmList[12][1]) / 2),
+                        int((lmList[11][2] + lmList[12][2]) / 2),
+                    )
+                    avgPointWrist = (
+                        int((lmList[23][1] + lmList[24][1]) / 2),
+                        int((lmList[23][2] + lmList[24][2]) / 2),
+                    )
+                    # img = cv2.line(img, avgPointShoulder, avgPointWrist, (0, 0, 255), 2)
+
+                    torsoVector = (
+                        avgPointShoulder[0] - avgPointWrist[0],
+                        avgPointShoulder[1] - avgPointWrist[1],
+                    )
+                    verticalVector = (0, 1)
+
+                    torsoBentAngle = getAngle(torsoVector, verticalVector)
+                    torsoBentAngle = round(torsoBentAngle, 2)
+
+                    print(torsoBentAngle, end="\t")
 
                     print("")
 
