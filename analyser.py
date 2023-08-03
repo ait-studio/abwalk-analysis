@@ -60,6 +60,10 @@ def poseAnalyser(video):
     # Calculate hyperparameters
     dt = 1 / videoFps
 
+    lastWristCoordi = [0, 0]
+
+    curIdx = 0
+
     while True:
         try:
             ret, img = video.read()
@@ -105,23 +109,23 @@ def poseAnalyser(video):
 
                     lineTargets = [
                         (11, 12),  # Shoulder line
-                        (12, 14),  # Left shoulder - Left elbow
-                        (14, 16),  # Left elbow - Left wrist
-                        (11, 13),  # Right shoulder - Right elbow
-                        (13, 15),  # Right elbow - Right wrist
-                        (12, 24),  # Left shoulder - Left waist
-                        (11, 23),  # Right shoulder - Right waist
-                        (24, 23),  # Left waist - Left waist
-                        (24, 26),  # Left waist - Left knee
-                        (23, 25),  # Right waist - Right knee
-                        (26, 28),  # Left knee - Left ankle
-                        (25, 27),  # Right knee - Right ankle
-                        (28, 30),  # Left ankle - Left heel
-                        (30, 32),  # Left heel - Left toe
-                        (32, 28),  # Left toe - Left ankle
-                        (27, 29),  # Right ankle - Right heel
-                        (29, 31),  # Right heel - Right toe
-                        (31, 27),  # Right toe - Right ankle
+                        (12, 14),  # Right shoulder - Right elbow
+                        (14, 16),  # Right elbow - Right wrist
+                        (11, 13),  # Left shoulder - Left elbow
+                        (13, 15),  # Left elbow - Left wrist
+                        (12, 24),  # Right shoulder - Right waist
+                        (11, 23),  # Left shoulder - Left waist
+                        (24, 23),  # Left waist - Right waist
+                        (24, 26),  # Right waist - Right knee
+                        (23, 25),  # Left waist - Left knee
+                        (26, 28),  # Right knee - Right ankle
+                        (25, 27),  # Left knee - Left ankle
+                        (28, 30),  # Right ankle - Right heel
+                        (30, 32),  # Right heel - Right toe
+                        (32, 28),  # Right toe - Right ankle
+                        (27, 29),  # Left ankle - Left heel
+                        (29, 31),  # Left heel - Left toe
+                        (31, 27),  # Left toe - Left ankle
                     ]
 
                     for i in lineTargets:
@@ -161,9 +165,27 @@ def poseAnalyser(video):
                             lmList[i[0]][2] - lmList[i[1]][2],
                         )
 
-                        print(getDistance(myVec))
+                        print(getDistance(myVec), end="\t")
+
+                    curWristCoordi = [
+                        lmList[23][1],  # Left wrist x coordinate
+                        lmList[24][1],  # Right wrist x coordinate
+                    ]
+                    if curIdx > 0:
+                        wristDiff = [
+                            curWristCoordi[0] - lastWristCoordi[0],
+                            curWristCoordi[1] - lastWristCoordi[1],
+                        ]
+                        avgDiff = np.average(wristDiff)
+                        curKphPixel = avgDiff / dt
+
+                        print(curKphPixel, end="\t")
+
+                    lastWristCoordi = curWristCoordi
+
                     print("")
 
+                curIdx += 1
                 cv2.imshow("img", img)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
