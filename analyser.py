@@ -66,8 +66,8 @@ def poseAnalyser(video):
 
     curIdx = 0
 
-    curData = np.zeros((1, 7))
-    data = np.zeros((int(videoFrames), 7))
+    curData = np.zeros((1, 8))
+    data = np.zeros((int(videoFrames), 8))
     barWidth = 50
 
     # outFileName = "./converted/" + fileName + ".mp4"
@@ -231,6 +231,19 @@ def poseAnalyser(video):
                     curData[0][6] = torsoBentAngle
                     # print(torsoBentAngle, end="\t")
 
+                    avgPointToe = (
+                        int((lmList[29][1] + lmList[30][1]) / 2),
+                        int((lmList[29][2] + lmList[30][2]) / 2),
+                    )
+
+                    heightVector = (
+                        lmList[0][1] - avgPointToe[0],
+                        lmList[0][2] - avgPointToe[1],
+                    )
+
+                    curHeight = round(np.linalg.norm(heightVector), 2)
+                    curData[0][7] = curHeight
+
                     # print("")
 
                 data = np.roll(data, -1, axis=0)
@@ -269,6 +282,7 @@ def csvWriter(data):
             "step_length",
             "step_speed",
             "bent_angle",
+            "height",
         ]
         writer = csv.DictWriter(f, fieldnames=fieldNames)
 
@@ -296,6 +310,7 @@ def csvWriter(data):
                 "step_length": i[4],
                 "step_speed": i[5],
                 "bent_angle": i[6],
+                "height": i[7],
             }
             writer.writerow(newRow)
     return True
