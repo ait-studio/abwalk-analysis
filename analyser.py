@@ -70,6 +70,13 @@ def poseAnalyser(video):
     data = np.zeros((int(videoFrames), 7))
     barWidth = 50
 
+    # outFileName = "./converted/" + fileName + ".mp4"
+    outFileName = "./analysed/" + filename
+    fourcc = cv2.VideoWriter_fourcc(*"MP4V")
+    out = cv2.VideoWriter(
+        outFileName, fourcc, videoFps, (int(videoWidth), int(videoHeight))
+    )
+
     while True:
         try:
             ret, img = video.read()
@@ -239,10 +246,12 @@ def poseAnalyser(video):
                     end="\r",
                 )
 
+                out.write(img)
                 # cv2.imshow("img", img)
                 # if cv2.waitKey(1) & 0xFF == ord("q"):
                 #     break
             else:
+                out.release()
                 break
         except Exception as e:
             print(f"[Error]{e}")
