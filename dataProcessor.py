@@ -25,6 +25,23 @@ def main():
     sliceSize = 50
     sliceCount = int(len(right_arm_angle) / sliceSize) + 1
 
+    # string to float
+    dataArray = [
+        right_arm_angle,
+        left_arm_angle,
+        left_wrist_angle,
+        right_wrist_angle,
+        step_length,
+        step_speed,
+        bent_angle,
+    ]
+
+    for data in dataArray:
+        for idx, row in enumerate(data):
+            data[idx] = float(row)
+
+    # arm angle average
+
     targetDataset = [right_arm_angle, left_arm_angle]
 
     for idx, data in enumerate(targetDataset):
@@ -36,6 +53,7 @@ def main():
 
             curAngles = data[startIndex:endIndex]
             curAngles = sorted(curAngles)
+
             curAngleDiff = round((float(curAngles[2]) - float(curAngles[-2])), 2)
 
             extractedArmAngles.append(curAngleDiff)
@@ -46,6 +64,12 @@ def main():
         else:
             print("Left Arm Angle AVG", end="\t")
         print(averageArmAngle)
+
+    # step length
+    step_length_factor = 0.85
+    new_step_length = sorted(step_length)
+    extractedStepLength = new_step_length[-10] * step_length_factor
+    print(f"Extracted Step length \t {extractedStepLength}")
 
     return True
 
