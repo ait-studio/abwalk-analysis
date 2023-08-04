@@ -4,6 +4,7 @@ from cvzone.PoseModule import PoseDetector
 import numpy as np
 import os
 import math
+import csv
 
 
 def getDistance(vec):
@@ -51,8 +52,9 @@ def poseAnalyser(video):
     videoWidth = video.get(cv2.CAP_PROP_FRAME_WIDTH)
     videoHeight = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
     videoFps = video.get(cv2.CAP_PROP_FPS)
-    print(notices[langType][1], end="")
-    print(f"{videoWidth}px * {videoHeight}px, {videoFps}FPS")
+    videoFrames = video.get(cv2.CAP_PROP_FRAME_COUNT)
+    print(notices[langType][1])
+    print(f"{videoWidth}px * {videoHeight}px, {videoFps} FPS, {videoFrames} frames")
 
     # importing PoseModel detector
     detector = PoseDetector()
@@ -63,6 +65,10 @@ def poseAnalyser(video):
     lastWristCoordi = [0, 0]
 
     curIdx = 0
+
+    curData = np.zeros((1, 7))
+    data = np.zeros((int(videoFrames), 7))
+    barWidth = 50
 
     while True:
         try:
@@ -148,18 +154,20 @@ def poseAnalyser(video):
                         (12, 24, 30),  # Right shoulder - wrist - hill
                     ]
 
-                    for i in angleTargets:
+                    for idx, v in enumerate(angleTargets):
                         vecA = (
-                            lmList[i[0]][1] - lmList[i[1]][1],
-                            lmList[i[0]][2] - lmList[i[1]][2],
+                            lmList[v[0]][1] - lmList[v[1]][1],
+                            lmList[v[0]][2] - lmList[v[1]][2],
                         )
                         vecB = (
-                            lmList[i[2]][1] - lmList[i[1]][1],
-                            lmList[i[2]][2] - lmList[i[1]][2],
+                            lmList[v[2]][1] - lmList[v[1]][1],
+                            lmList[v[2]][2] - lmList[v[1]][2],
                         )
                         curAngle = getAngle(vecA, vecB)
                         curAngle = round(curAngle, 2)
-                        print(curAngle, end="\t")
+
+                        curData[0][idx] = curAngle
+                        # print(curAngle, end="\t")
 
                     distanceTagets = [(29, 30)]
 
@@ -171,7 +179,9 @@ def poseAnalyser(video):
 
                         curDist = getDistance(myVec)
                         curDist = round(curDist, 2)
-                        print(curDist, end="\t")
+
+                        curData[0][4] = curDist
+                        # print(curDist, end="\t")
 
                     curWristCoordi = [
                         lmList[23][1],  # Left wrist x coordinate
@@ -187,7 +197,8 @@ def poseAnalyser(video):
 
                         curKphPixel = round(curKphPixel, 2)
 
-                        print(curKphPixel, end="\t")
+                        curData[0][5] = curKphPixel
+                        # print(curKphPixel, end="\t")
 
                     lastWristCoordi = curWristCoordi
 
@@ -210,19 +221,74 @@ def poseAnalyser(video):
                     torsoBentAngle = getAngle(torsoVector, verticalVector)
                     torsoBentAngle = round(torsoBentAngle, 2)
 
-                    print(torsoBentAngle, end="\t")
+                    curData[0][6] = torsoBentAngle
+                    # print(torsoBentAngle, end="\t")
 
-                    print("")
+                    # print("")
 
+                data = np.roll(data, -1, axis=0)
+                data[-1] = curData[0]
                 curIdx += 1
-                cv2.imshow("img", img)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+
+                percentage = int((curIdx / videoFrames) * barWidth)
+                print(
+                    "Analysing [",
+                    "█" * percentage,
+                    " " * (barWidth - percentage),
+                    f"] {curIdx} / {videoFrames}",
+                    end="\r",
+                )
+
+                # cv2.imshow("img", img)
+                # if cv2.waitKey(1) & 0xFF == ord("q"):
+                #     break
             else:
                 break
         except Exception as e:
             print(f"[Error]{e}")
 
+    return data
+
+
+def csvWriter(data):
+    with open(f"{analysedDirPath}/{filename}.csv", "w") as f:
+        fieldNames = [
+            "right_arm_angle",
+            "left_arm_angle",
+            "left_wrist_angle",
+            "right_wrist_angle",
+            "step_length",
+            "step_speed",
+            "bent_angle",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldNames)
+
+        writer.writeheader()
+
+        curIdx = 0
+        videoFrames = len(data)
+        barWidth = 50
+
+        for i in data:
+            curIdx += 1
+            percentage = int((curIdx / videoFrames) * barWidth)
+            print(
+                "Writing [",
+                "█" * percentage,
+                " " * (barWidth - percentage),
+                f"] {curIdx} / {videoFrames}",
+                end="\r",
+            )
+            newRow = {
+                "right_arm_angle": i[0],
+                "left_arm_angle": i[1],
+                "left_wrist_angle": i[2],
+                "right_wrist_angle": i[3],
+                "step_length": i[4],
+                "step_speed": i[5],
+                "bent_angle": i[6],
+            }
+            writer.writerow(newRow)
     return True
 
 
@@ -235,13 +301,15 @@ def main():
         print(notices[langType][0])
         os.mkdir(analysedDirPath)
 
-    poseAnalyser(cam)
+    extractedData = poseAnalyser(cam)
+    csvWriter(extractedData)
 
     return True
 
 
 # mockup data
-samplePath = "./source/01-90.mp4"
+filename = "01-90.mp4"
+samplePath = f"./source/{filename}"
 
 # i18n
 notices = {
