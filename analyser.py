@@ -36,7 +36,7 @@ def drawLine(coordinates, img, style=0):
         )
 
     elif style == 1:
-        # Drawing wrist-shoulder lines
+        # Drawing waist-shoulder lines
         img = cv2.line(
             img,
             (coordinates[0], coordinates[1]),
@@ -62,7 +62,7 @@ def poseAnalyser(video):
     # Calculate hyperparameters
     dt = 1 / videoFps
 
-    lastWristCoordi = [0, 0]
+    lastWaistCoordi = [0, 0]
 
     curIdx = 0
 
@@ -155,10 +155,10 @@ def poseAnalyser(video):
 
                     ## Get angles from here
                     angleTargets = [
-                        (24, 12, 16),  # Right wrist - shoulder - waist
-                        (23, 11, 15),  # Left wrist - shoulder - waist
-                        (11, 23, 29),  # Left shoulder - wrist - hill
-                        (12, 24, 30),  # Right shoulder - wrist - hill
+                        (24, 12, 16),  # Right waist - shoulder - waist
+                        (23, 11, 15),  # Left waist - shoulder - waist
+                        (11, 23, 29),  # Left shoulder - waist - hill
+                        (12, 24, 30),  # Right shoulder - waist - hill
                     ]
 
                     for idx, v in enumerate(angleTargets):
@@ -190,38 +190,43 @@ def poseAnalyser(video):
                         curData[0][4] = curDist
                         # print(curDist, end="\t")
 
-                    curWristCoordi = [
-                        lmList[23][1],  # Left wrist x coordinate
-                        lmList[24][1],  # Right wrist x coordinate
-                    ]
-                    if curIdx > 0:
-                        wristDiff = [
-                            curWristCoordi[0] - lastWristCoordi[0],
-                            curWristCoordi[1] - lastWristCoordi[1],
+                    if curIdx > 0 and curIdx % 10 == 0:
+                        curWaistCoordi = [
+                            lmList[23][1],  # Left waist x coordinate
+                            lmList[24][1],  # Right waist x coordinate
                         ]
-                        avgDiff = np.average(wristDiff)
-                        curKphPixel = avgDiff / dt
+                        avgWaistCoordi = np.average(curWaistCoordi)
+                        waistDiff = avgWaistCoordi - avgLastWaistCoordi
+                        curKphPixel = waistDiff / (dt * 10)
 
                         curKphPixel = round(curKphPixel, 2)
 
                         curData[0][5] = curKphPixel
+                        avgLastWaistCoordi = avgWaistCoordi
                         # print(curKphPixel, end="\t")
-
-                    lastWristCoordi = curWristCoordi
+                    elif curIdx == 0:
+                        curWaistCoordi = [
+                            lmList[23][1],  # Left waist x coordinate
+                            lmList[24][1],  # Right waist x coordinate
+                        ]
+                        avgWaistCoordi = np.average(curWaistCoordi)
+                        avgLastWaistCoordi = avgWaistCoordi
+                    else:
+                        curData[0][5] = 0
 
                     avgPointShoulder = (
                         int((lmList[11][1] + lmList[12][1]) / 2),
                         int((lmList[11][2] + lmList[12][2]) / 2),
                     )
-                    avgPointWrist = (
+                    avgPointWaist = (
                         int((lmList[23][1] + lmList[24][1]) / 2),
                         int((lmList[23][2] + lmList[24][2]) / 2),
                     )
-                    # img = cv2.line(img, avgPointShoulder, avgPointWrist, (0, 0, 255), 2)
+                    # img = cv2.line(img, avgPointShoulder, avgPointWaist, (0, 0, 255), 2)
 
                     torsoVector = (
-                        avgPointShoulder[0] - avgPointWrist[0],
-                        avgPointShoulder[1] - avgPointWrist[1],
+                        avgPointShoulder[0] - avgPointWaist[0],
+                        avgPointShoulder[1] - avgPointWaist[1],
                     )
                     verticalVector = (0, 1)
 
@@ -248,7 +253,6 @@ def poseAnalyser(video):
 
                 data = np.roll(data, -1, axis=0)
                 data[-1] = curData[0]
-                curIdx += 1
 
                 percentage = int((curIdx / videoFrames) * barWidth)
                 print(
@@ -259,6 +263,7 @@ def poseAnalyser(video):
                     end="\r",
                 )
 
+                curIdx += 1
                 out.write(img)
                 # cv2.imshow("img", img)
                 # if cv2.waitKey(1) & 0xFF == ord("q"):
@@ -277,8 +282,8 @@ def csvWriter(data):
         fieldNames = [
             "right_arm_angle",
             "left_arm_angle",
-            "left_wrist_angle",
-            "right_wrist_angle",
+            "left_waist_angle",
+            "right_waist_angle",
             "step_length",
             "step_speed",
             "bent_angle",
@@ -305,8 +310,8 @@ def csvWriter(data):
             newRow = {
                 "right_arm_angle": i[0],
                 "left_arm_angle": i[1],
-                "left_wrist_angle": i[2],
-                "right_wrist_angle": i[3],
+                "left_waist_angle": i[2],
+                "right_waist_angle": i[3],
                 "step_length": i[4],
                 "step_speed": i[5],
                 "bent_angle": i[6],

@@ -5,8 +5,8 @@ import numpy as np
 def main():
     right_arm_angle = []
     left_arm_angle = []
-    left_wrist_angle = []
-    right_wrist_angle = []
+    left_waist_angle = []
+    right_waist_angle = []
     step_length = []
     step_speed = []
     bent_angle = []
@@ -17,8 +17,8 @@ def main():
         for row in reader:
             right_arm_angle.append(row["right_arm_angle"])
             left_arm_angle.append(row["left_arm_angle"])
-            left_wrist_angle.append(row["left_wrist_angle"])
-            right_wrist_angle.append(row["right_wrist_angle"])
+            left_waist_angle.append(row["left_waist_angle"])
+            right_waist_angle.append(row["right_waist_angle"])
             step_length.append(row["step_length"])
             step_speed.append(row["step_speed"])
             bent_angle.append(row["bent_angle"])
@@ -37,8 +37,8 @@ def main():
     dataArray = [
         right_arm_angle,
         left_arm_angle,
-        left_wrist_angle,
-        right_wrist_angle,
+        left_waist_angle,
+        right_waist_angle,
         step_length,
         step_speed,
         bent_angle,
@@ -80,55 +80,39 @@ def main():
     heightFactor = 0.94  # nose node to toe doesn't mean the 100% of the height
 
     heightPixelConstant = round((realHeight * heightFactor / meanHightPixels), 2)
-    print(f"Height Pixcel Constant\t{heightPixelConstant}px/cm")
+    print(f"Height Pixcel Constant\t{heightPixelConstant}cm/px")
 
     # step length
     new_step_length = sorted(step_length)
     extractedStepLength = new_step_length[-10] * heightPixelConstant
     print(f"Extracted Step length \t{round(extractedStepLength, 2)}cm")
 
-    # step speed
-    sliceSize = 10
-    sliceCount = int(len(right_arm_angle) / sliceSize) + 1
-
-    avgStepSpeeds = []
-
-    for i in range(sliceCount):
-        startIndex = i * 10
-        endIndex = (i + 1) * 10 if (i + 1) * 10 < len(data) else len(data)
-
-        curStepSpeed = step_speed[startIndex:endIndex]
-        avgStepSpeeds.append(np.average(curStepSpeed))
-
-    sortedAvgStepSpeed = sorted(avgStepSpeeds)
+    sortedAvgStepSpeed = sorted(step_speed)
     selectedStepSpeed = []
 
     if len(sortedAvgStepSpeed) >= 10:
-        selectedStepSpeed.append(sortedAvgStepSpeed[-8])
-        selectedStepSpeed.append(sortedAvgStepSpeed[-9])
         selectedStepSpeed.append(sortedAvgStepSpeed[-10])
-    elif len(sortedAvgStepSpeed) >= 3:
-        selectedStepSpeed.append(sortedAvgStepSpeed[0])
-        selectedStepSpeed.append(sortedAvgStepSpeed[1])
-        selectedStepSpeed.append(sortedAvgStepSpeed[2])
     else:
         print("Can't get three highest value of step lengths data")
 
     avgSelectedStepSpeed = np.average(selectedStepSpeed)
-    unitConvertingConstant = 0.036  # cm/s to kph
+    unitConvertingConstant = 0.036  # c(m)ps to kph
     stepSpeedFactor = 0.95
     avgSelectedStepSpeed = (
-        avgSelectedStepSpeed * stepSpeedFactor * unitConvertingConstant
+        avgSelectedStepSpeed
+        * stepSpeedFactor
+        * unitConvertingConstant
+        * heightPixelConstant
     )
 
-    print(f"Extracted Step Speed \t{round(avgSelectedStepSpeed, 4)}kph")
+    print(f"Extracted Step Speed \t{round(avgSelectedStepSpeed, 2)}kph")
 
     # Step Asymmetry
-    avgLeftWrist = np.average(left_wrist_angle)
-    avgRightWrist = np.average(right_wrist_angle)
-    diffWrist = abs(avgLeftWrist - avgRightWrist)
-    sumWrist = abs(avgLeftWrist + avgRightWrist)
-    asymmetryAmount = round(abs(diffWrist / sumWrist) * 100, 4)
+    avgLeftWaist = np.average(left_waist_angle)
+    avgRightWaist = np.average(right_waist_angle)
+    diffWaist = abs(avgLeftWaist - avgRightWaist)
+    sumWaist = abs(avgLeftWaist + avgRightWaist)
+    asymmetryAmount = round(abs(diffWaist / sumWaist) * 100, 4)
 
     print(f"Step Asymmetry is \t{asymmetryAmount}%")
 
