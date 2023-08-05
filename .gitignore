@@ -4,3 +4,6 @@ extracted/*.avi
 source/*.mp4
 source/*.avi
 model/weights/*.weights
+analysed/*.mp4
+analysed/*.avi
+analysed/*.csv
