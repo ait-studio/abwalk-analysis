@@ -74,9 +74,17 @@ def main():
             print("Left Arm Angle AVG", end="\t")
         print(f"{round(averageArmAngle, 2)}°")
 
+    # Calculate Height-Pixel constant
+    meanHightPixels = np.average(heights[:10])  # pick only initial 10 values
+    realHeight = 170
+    heightFactor = 0.94  # nose node to toe doesn't mean the 100% of the height
+
+    heightPixelConstant = round((realHeight * heightFactor / meanHightPixels), 2)
+    print(f"Height Pixcel Constant\t{heightPixelConstant}px/cm")
+
     # step length
     new_step_length = sorted(step_length)
-    extractedStepLength = new_step_length[-10] * 0.35
+    extractedStepLength = new_step_length[-10] * heightPixelConstant
     print(f"Extracted Step length \t{round(extractedStepLength, 2)}cm")
 
     # step speed
