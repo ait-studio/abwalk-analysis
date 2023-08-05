@@ -90,7 +90,7 @@ def main():
 
         # Calculate Height-Pixel constant
         meanHightPixels = np.average(heights[:10])  # pick only initial 10 values
-        realHeight = 170
+        realHeight = int(file[-7:-4])
         heightFactor = 0.94  # nose node to toe doesn't mean the 100% of the height
 
         heightPixelConstant = round((realHeight * heightFactor / meanHightPixels), 2)
