@@ -48,7 +48,7 @@ def drawLine(coordinates, img, style=0):
     return img
 
 
-def poseAnalyser(video):
+def poseAnalyser(video, filename):
     videoWidth = video.get(cv2.CAP_PROP_FRAME_WIDTH)
     videoHeight = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
     videoFps = video.get(cv2.CAP_PROP_FPS)
@@ -72,7 +72,13 @@ def poseAnalyser(video):
 
     # outFileName = "./converted/" + fileName + ".mp4"
     outFileName = "./analysed/" + filename
-    fourcc = cv2.VideoWriter_fourcc(*"MP4V")
+
+    fourcc = ""
+    if filename[-4:] == ".mp4":
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    elif filename[-4:] == ".avi":
+        fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+
     out = cv2.VideoWriter(
         outFileName, fourcc, videoFps, (int(videoWidth), int(videoHeight))
     )
@@ -324,33 +330,45 @@ def csvWriter(data):
 
 
 def main():
-    cam = cv2.VideoCapture(samplePath)
+    filePath = "./source"
+    files = os.listdir(filePath)
+    videoFiles = []
 
-    isAnalysedDirExist = os.path.isdir(analysedDirPath)
+    for file in files:
+        if file[-4:] == ".mp4" or file[-4:] == ".avi":
+            videoFiles.append(file)
 
-    if not isAnalysedDirExist:
-        print(notices[langType][0])
-        os.mkdir(analysedDirPath)
+    for filename in videoFiles:
+        print(f"{notices[2]} {filename}")
+        cam = cv2.VideoCapture(f"{filePath}/{filename}")
 
-    extractedData = poseAnalyser(cam)
-    csvWriter(extractedData)
+        isAnalysedDirExist = os.path.isdir(analysedDirPath)
+
+        if not isAnalysedDirExist:
+            print(notices[langType][0])
+            os.mkdir(analysedDirPath)
+
+        extractedData = poseAnalyser(cam, filename)
+        csvWriter(extractedData)
 
     return True
 
 
 # mockup data
-filename = "03-90.avi"
-samplePath = f"./source/{filename}"
+# filename = "03-90.avi"
+# samplePath = f"./source/{filename}"
 
 # i18n
 notices = {
     "en": [
         "Looks like there is no '/analysed/' directory. We'll generate it...",
         "Video has been loaded.",
+        "start to analyse",
     ],
     "kr": [
         "'analysed' 디렉토리가 존재하지 않는 것 같습니다. 생성합니다...",
         "비디오가 성공적으로 로딩되었습니다.",
+        "분석 시작 : ",
     ],
 }
 langType = "en"
