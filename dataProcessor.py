@@ -69,9 +69,8 @@ def main():
         print(f"{round(averageArmAngle, 4)}Degree")
 
     # step length
-    step_length_factor = 0.85
     new_step_length = sorted(step_length)
-    extractedStepLength = new_step_length[-10] * step_length_factor
+    extractedStepLength = new_step_length[-10] * 0.35
     print(f"Extracted Step length \t {round(extractedStepLength, 4)}cm")
 
     # step speed
@@ -103,7 +102,7 @@ def main():
 
     avgSelectedStepSpeed = np.average(selectedStepSpeed)
     unitConvertingConstant = 0.036  # cm/s to kph
-    stepSpeedFactor = 0.095
+    stepSpeedFactor = 0.95
     avgSelectedStepSpeed = (
         avgSelectedStepSpeed * stepSpeedFactor * unitConvertingConstant
     )
