@@ -111,8 +111,8 @@ def main():
     avgLeftWaist = np.average(left_waist_angle)
     avgRightWaist = np.average(right_waist_angle)
     diffWaist = abs(avgLeftWaist - avgRightWaist)
-    sumWaist = abs(avgLeftWaist + avgRightWaist)
-    asymmetryAmount = round(abs(diffWaist / sumWaist) * 100, 4)
+    avgWaist = (avgLeftWaist + avgRightWaist) / 2
+    asymmetryAmount = round((diffWaist / avgWaist) * 100, 2)
 
     print(f"Step Asymmetry is \t{asymmetryAmount}%")
 
@@ -124,7 +124,7 @@ def main():
 
 
 csvFilePath = "./analysed"
-smapleFileName = "01-90.mp4.csv"
+smapleFileName = "03-90.avi.csv"
 
 
 if __name__ == "__main__":

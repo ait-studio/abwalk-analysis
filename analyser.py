@@ -172,6 +172,8 @@ def poseAnalyser(video):
                         )
                         curAngle = getAngle(vecA, vecB)
                         curAngle = round(curAngle, 2)
+                        if idx > 1:
+                            curAngle = round(180 - curAngle, 2)
 
                         curData[0][idx] = curAngle
                         # print(curAngle, end="\t")
@@ -337,7 +339,7 @@ def main():
 
 
 # mockup data
-filename = "01-90.mp4"
+filename = "03-90.avi"
 samplePath = f"./source/{filename}"
 
 # i18n
