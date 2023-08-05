@@ -25,7 +25,13 @@ def main():
             heights.append(row["height"])
 
     sliceSize = 50
-    sliceCount = int(len(right_arm_angle) / sliceSize) + 1
+    sliceCount = int(len(right_arm_angle) / sliceSize)
+    sliceCount = (
+        sliceCount
+        if sliceCount * 50 == len(right_arm_angle)
+        else sliceCount + 1
+        # If the length is the exactly multiplied number of {sliceCount}, we don't need to plus 1
+    )
 
     # string to float
     dataArray = [
@@ -57,7 +63,7 @@ def main():
             curAngles = data[startIndex:endIndex]
             curAngles = sorted(curAngles)
 
-            curAngleDiff = round((curAngles[2] - curAngles[-2]), 2)
+            curAngleDiff = round((curAngles[-3] - curAngles[2]), 2)
 
             extractedArmAngles.append(curAngleDiff)
 
@@ -66,12 +72,12 @@ def main():
             print("Right Arm Angle AVG", end="\t")
         else:
             print("Left Arm Angle AVG", end="\t")
-        print(f"{round(averageArmAngle, 4)}Degree")
+        print(f"{round(averageArmAngle, 2)}°")
 
     # step length
     new_step_length = sorted(step_length)
     extractedStepLength = new_step_length[-10] * 0.35
-    print(f"Extracted Step length \t {round(extractedStepLength, 4)}cm")
+    print(f"Extracted Step length \t{round(extractedStepLength, 2)}cm")
 
     # step speed
     sliceSize = 10
@@ -107,7 +113,7 @@ def main():
         avgSelectedStepSpeed * stepSpeedFactor * unitConvertingConstant
     )
 
-    print(f"Extracted Step Speed \t {round(avgSelectedStepSpeed, 4)}kph")
+    print(f"Extracted Step Speed \t{round(avgSelectedStepSpeed, 4)}kph")
 
     # Step Asymmetry
     avgLeftWrist = np.average(left_wrist_angle)
@@ -116,11 +122,11 @@ def main():
     sumWrist = abs(avgLeftWrist + avgRightWrist)
     asymmetryAmount = round(abs(diffWrist / sumWrist) * 100, 4)
 
-    print(f"Step Asymmetry is \t {asymmetryAmount}%")
+    print(f"Step Asymmetry is \t{asymmetryAmount}%")
 
     # Torso Bented
     avgBented = round(np.average(bent_angle), 4)
-    print(f"Torso Bented amount is \t {avgBented}Degree")
+    print(f"Torso Bented amount is \t{avgBented}Degree")
 
     return True
 
