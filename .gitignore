@@ -11,3 +11,5 @@ analysed/*.csv
 */.DS_Store
 *.DS_Store
 /*/.DS_Store
+proceed/*.csv
+proceed/*.xlsx
