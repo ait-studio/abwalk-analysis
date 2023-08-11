@@ -1,9 +1,13 @@
 venv
 extracted/*.mp4
 extracted/*.avi
-source/*.mp4
-source/*.avi
+source/*/*.mp4
+source/*/*.avi
 model/weights/*.weights
 analysed/*.mp4
 analysed/*.avi
 analysed/*.csv
+.DS_Store
+*/.DS_Store
+*.DS_Store
+/*/.DS_Store
