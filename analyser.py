@@ -5,6 +5,7 @@ import numpy as np
 import os
 import math
 import csv
+import sys
 
 
 def getDistance(vec):
@@ -62,13 +63,11 @@ def poseAnalyser(video, filename):
     # Calculate hyperparameters
     dt = 1 / videoFps
 
-    lastWaistCoordi = [0, 0]
-
     curIdx = 0
 
     curData = np.zeros((1, 8))
     data = np.zeros((int(videoFrames), 8))
-    barWidth = 50
+    barWidth = 15
 
     # outFileName = "./converted/" + fileName + ".mp4"
     outFileName = "./analysed/" + filename
@@ -82,6 +81,8 @@ def poseAnalyser(video, filename):
     out = cv2.VideoWriter(
         outFileName, fourcc, videoFps, (int(videoWidth), int(videoHeight))
     )
+
+    avgLastWaistCoordi = 0
 
     while True:
         try:
@@ -163,8 +164,6 @@ def poseAnalyser(video, filename):
                     angleTargets = [
                         (24, 12, 16),  # Right waist - shoulder - waist
                         (23, 11, 15),  # Left waist - shoulder - waist
-                        (11, 23, 29),  # Left shoulder - waist - hill
-                        (12, 24, 30),  # Right shoulder - waist - hill
                     ]
 
                     for idx, v in enumerate(angleTargets):
@@ -178,10 +177,30 @@ def poseAnalyser(video, filename):
                         )
                         curAngle = getAngle(vecA, vecB)
                         curAngle = round(curAngle, 2)
-                        if idx > 1:
-                            curAngle = round(180 - curAngle, 2)
 
                         curData[0][idx] = curAngle
+                        # print(curAngle, end="\t")
+
+                    # Waist angle for step asymmetry
+
+                    angleTargets = [
+                        (11, 23, 29),  # Left shoulder - waist - hill
+                        (12, 24, 30),  # Right shoulder - waist - hill
+                    ]
+
+                    for idx, v in enumerate(angleTargets):
+                        vecA = (
+                            lmList[v[1]][1] - lmList[v[0]][1],
+                            lmList[v[1]][2] - lmList[v[0]][2],
+                        )
+                        vecB = (
+                            lmList[v[2]][1] - lmList[v[1]][1],
+                            lmList[v[2]][2] - lmList[v[1]][2],
+                        )
+                        curAngle = getAngle(vecA, vecB)
+                        curAngle = round(curAngle, 2)
+
+                        curData[0][idx + 2] = curAngle
                         # print(curAngle, end="\t")
 
                     distanceTagets = [(29, 30)]
@@ -236,7 +255,7 @@ def poseAnalyser(video, filename):
                         avgPointShoulder[0] - avgPointWaist[0],
                         avgPointShoulder[1] - avgPointWaist[1],
                     )
-                    verticalVector = (0, 1)
+                    verticalVector = (0, -1)
 
                     torsoBentAngle = getAngle(torsoVector, verticalVector)
                     torsoBentAngle = round(torsoBentAngle, 2)
@@ -281,11 +300,10 @@ def poseAnalyser(video, filename):
                 break
         except Exception as e:
             print(f"[Error]{e}")
-
     return data
 
 
-def csvWriter(data):
+def csvWriter(data, filename):
     with open(f"{analysedDirPath}/{filename}.csv", "w") as f:
         fieldNames = [
             "right_arm_angle",
@@ -303,7 +321,7 @@ def csvWriter(data):
 
         curIdx = 0
         videoFrames = len(data)
-        barWidth = 50
+        barWidth = 15
 
         for i in data:
             curIdx += 1
@@ -330,7 +348,7 @@ def csvWriter(data):
 
 
 def main():
-    filePath = "./source"
+    filePath = f"./source/{sys.argv[1]}"
     files = os.listdir(filePath)
     videoFiles = []
 
@@ -339,7 +357,7 @@ def main():
             videoFiles.append(file)
 
     for filename in videoFiles:
-        print(f"{notices[2]} {filename}")
+        print(f"{notices[langType][2]} {filename}")
         cam = cv2.VideoCapture(f"{filePath}/{filename}")
 
         isAnalysedDirExist = os.path.isdir(analysedDirPath)
@@ -349,7 +367,9 @@ def main():
             os.mkdir(analysedDirPath)
 
         extractedData = poseAnalyser(cam, filename)
-        csvWriter(extractedData)
+        csvWriter(extractedData, filename)
+
+        print("")
 
     return True
 

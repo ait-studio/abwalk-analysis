@@ -1,18 +1,20 @@
 import csv
 import numpy as np
 import os
+import math
+
+
+def rms(data):
+    squaredData = 0
+    avgValue = np.average(data)
+    for d in data:
+        squaredData += (d - avgValue) ** 2
+    meanData = squaredData / len(data)
+    rmsData = math.sqrt(meanData)
+    return rmsData
 
 
 def main():
-    right_arm_angle = []
-    left_arm_angle = []
-    left_waist_angle = []
-    right_waist_angle = []
-    step_length = []
-    step_speed = []
-    bent_angle = []
-    heights = []
-
     csvFilePath = "./analysed"
     files = os.listdir(csvFilePath)
     csvFiles = []
@@ -23,7 +25,18 @@ def main():
     resultData = []
 
     for file in csvFiles:
+        right_arm_angle = []
+        left_arm_angle = []
+        left_waist_angle = []
+        right_waist_angle = []
+        step_length = []
+        step_speed = []
+        bent_angle = []
+        heights = []
+
+        print(file)
         curResultData = []
+        curResultData.append(file)
         with open(f"{csvFilePath}/{file}", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -73,6 +86,8 @@ def main():
                 # print(startIndex, endIndex)
 
                 curAngles = data[startIndex:endIndex]
+                if len(curAngles) < 6:
+                    continue
                 curAngles = sorted(curAngles)
 
                 curAngleDiff = round((curAngles[-3] - curAngles[2]), 2)
@@ -89,8 +104,21 @@ def main():
             print(f"{curAvgArmAngle}°")
 
         # Calculate Height-Pixel constant
-        meanHightPixels = np.average(heights[:10])  # pick only initial 10 values
-        realHeight = int(file[-7:-4])
+        curIdx = 0
+        count = 0
+        meanHightPixels = 0
+        while True:
+            if count >= 10:
+                break
+            if heights[curIdx] > 50:
+                meanHightPixels += heights[curIdx]
+                curIdx += 1
+                count += 1
+            else:
+                curIdx += 1
+                continue
+        meanHightPixels /= 10
+        realHeight = int(file[-11:-8])
         heightFactor = 0.94  # nose node to toe doesn't mean the 100% of the height
 
         heightPixelConstant = round((realHeight * heightFactor / meanHightPixels), 2)
@@ -128,8 +156,8 @@ def main():
         curResultData.append(avgSelectedStepSpeed)
 
         # Step Asymmetry
-        avgLeftWaist = np.average(left_waist_angle)
-        avgRightWaist = np.average(right_waist_angle)
+        avgLeftWaist = rms(left_waist_angle)
+        avgRightWaist = rms(right_waist_angle)
         diffWaist = abs(avgLeftWaist - avgRightWaist)
         avgWaist = (avgLeftWaist + avgRightWaist) / 2
         asymmetryAmount = round((diffWaist / avgWaist) * 100, 2)
@@ -145,6 +173,33 @@ def main():
         resultData.append(curResultData)
 
     print(resultData)
+
+    with open("proceed/result.csv", "w") as f:
+        fieldNames = [
+            "filename",
+            "rArm_avg",
+            "lArm_avg",
+            "heightPixel",
+            "stepLength",
+            "stepSpeed",
+            "stepAsymmetry",
+            "torsoBented",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldNames)
+
+        writer.writeheader()
+        for data in resultData:
+            newRow = {
+                "filename": data[0][:-10],
+                "rArm_avg": data[1],
+                "lArm_avg": data[2],
+                "heightPixel": data[3],
+                "stepLength": data[4],
+                "stepSpeed": data[5],
+                "stepAsymmetry": data[6],
+                "torsoBented": data[7],
+            }
+            writer.writerow(newRow)
 
     return True
 
